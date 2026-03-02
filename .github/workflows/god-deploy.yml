@@ -1,0 +1,146 @@
+name: 🧠 GOD TIER DEPLOY
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options:
+          - preview
+          - production
+        default: preview
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+# =====================
+# BUILD
+# =====================
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type Safety
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: dist
+
+
+# =====================
+# BUNDLE SIZE GUARD
+# =====================
+  bundle-check:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist
+
+      - name: Fail if bundle too large
+        run: |
+          SIZE=$(du -sk dist | cut -f1)
+          echo "Bundle size: $SIZE KB"
+          if [ $SIZE -gt 5000 ]; then
+            echo "Bundle too large!"
+            exit 1
+          fi
+
+
+# =====================
+# NETLIFY PREVIEW
+# =====================
+  netlify-preview:
+    needs: bundle-check
+    runs-on: ubuntu-latest
+
+    outputs:
+      preview_url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist
+
+      - run: npm install -g netlify-cli
+
+      - id: deploy
+        run: |
+          URL=$(netlify deploy \
+            --dir=dist \
+            --json \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN | jq -r '.deploy_url')
+
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+
+# =====================
+# LIGHTHOUSE TEST
+# =====================
+  lighthouse:
+    needs: netlify-preview
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: npm install -g lighthouse
+
+      - name: Run Lighthouse
+        run: |
+          lighthouse \
+          ${{ needs.netlify-preview.outputs.preview_url }} \
+          --quiet \
+          --chrome-flags="--headless"
+
+
+# =====================
+# PRODUCTION DEPLOY
+# =====================
+  production:
+    if: ${{ inputs.environment == 'production' }}
+    needs: lighthouse
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - uses: actions/deploy-pages@v4
