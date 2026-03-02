@@ -1,0 +1,7 @@
+{
+  "name": "StudyPro-beta0.0.4",
+  "description": "The all-in-one productivity OS to manage your tasks, time, and ideas.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
