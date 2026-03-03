@@ -511,9 +511,12 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
   };
 
   const t = (key: string) => {
-    const lang = language as keyof typeof translations;
-    const k = key as keyof typeof translations['en'];
-    return translations[lang]?.[k] || translations['en'][k] || key;
+    const lang = language as string;
+    const k = key as string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dict = (translations as any)[lang] || translations['en'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (dict as any)[k] || (translations['en'] as any)[k] || key;
   };
 
   const renderAppModule = (appId: AppModule) => {

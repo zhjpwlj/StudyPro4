@@ -48,7 +48,7 @@ const Login: React.FC<LoginProps> = ({ onEnterDemoMode }) => {
             }
             // AuthGate listener will handle reload
         }
-    } catch (err) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error("Authentication Error:", err);
         let errorMessage = err.message || 'An unexpected error occurred.';
         

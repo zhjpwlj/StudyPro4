@@ -133,7 +133,8 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                     <div className="flex-1 min-h-[250px] relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
-                                <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={renderCustomizedLabel as (props: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number; }) => React.ReactNode} outerRadius={80} innerRadius={40} dataKey="value" stroke="none">
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={renderCustomizedLabel as any} outerRadius={80} innerRadius={40} dataKey="value" stroke="none">
                                     {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                                 </Pie>
                                 <RechartsTooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }} />
