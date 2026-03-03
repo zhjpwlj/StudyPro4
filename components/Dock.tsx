@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { LayoutDashboard, CheckSquare, Clock as PomodoroIcon, Users, Settings, BrainCircuit, Calculator, NotebookText, CloudSun, Calendar as CalendarIcon, Target, Music as MusicIcon, Grid, Rocket, HeartPulse, Layers } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, MotionValue } from 'framer-motion';
+import { Grid, Rocket, HeartPulse } from 'lucide-react';
+import { appIcons } from '../constants';
 import { AppModule, WindowConfig } from '../types';
 import { LanguageContext } from '../contexts/LanguageContext';
 
@@ -11,21 +12,6 @@ interface DockProps {
   onToggleLaunchpad: () => void;
 }
 
-const appIcons: Record<string, React.ElementType> = {
-  [AppModule.DASHBOARD]: LayoutDashboard,
-  [AppModule.TASKS]: CheckSquare,
-  [AppModule.POMODORO]: PomodoroIcon,
-  [AppModule.SOCIAL]: Users,
-  [AppModule.CHAT]: BrainCircuit,
-  [AppModule.SETTINGS]: Settings,
-  [AppModule.CALCULATOR]: Calculator,
-  [AppModule.NOTES]: NotebookText,
-  [AppModule.WEATHER]: CloudSun,
-  [AppModule.CALENDAR]: CalendarIcon,
-  [AppModule.GOALS]: Target,
-  [AppModule.MUSIC]: MusicIcon,
-  [AppModule.FLASHCARDS]: Layers,
-};
 
 
 type DockFolder = {
@@ -64,7 +50,7 @@ const DISTANCE_LIMIT = 150; // Pixel distance to affect neighbors
 
 // --- Dock Icon Component ---
 interface DockIconProps {
-  mouseX: ReturnType<typeof useMotionValue>;
+  mouseX: MotionValue<number>;
   children: React.ReactNode;
   onClick: () => void;
   isOpen?: boolean;
@@ -137,7 +123,7 @@ const folderVariants = {
 export default function Dock({ openWindows, onLaunch, onFocus, onToggleLaunchpad }: DockProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
   const dockRef = useRef<HTMLElement>(null);
-  const mouseX = useMotionValue(Infinity);
+  const mouseX = useMotionValue<number>(Infinity);
   const { t } = useContext(LanguageContext);
   
   const isOpen = (appId: AppModule) => openWindows.some(w => w.id === appId && !w.isMinimized);
@@ -202,7 +188,7 @@ export default function Dock({ openWindows, onLaunch, onFocus, onToggleLaunchpad
       }
   }
 
-  (Dock as { appIcons?: Record<string, React.ElementType> }).appIcons = appIcons;
+  // (Dock as { appIcons?: Record<string, React.ElementType> }).appIcons = appIcons;
 
   return (
     <footer ref={dockRef} className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center">

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import MobileTopBar from './components/MobileTopBar';
 import MobileAppSwitcher from './components/MobileAppSwitcher';
 import MenuBar from './components/MenuBar';
+import { appIcons } from './constants';
 import Dock from './components/Dock';
 import Window from './components/Window';
 import Dashboard from './components/Dashboard';
@@ -509,8 +510,10 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
     }
   };
 
-  const t = (key: keyof typeof translations['en']) => {
-    return translations[language]?.[key] || translations['en'][key] || key;
+  const t = (key: string) => {
+    const lang = language as keyof typeof translations;
+    const k = key as keyof typeof translations['en'];
+    return translations[lang]?.[k] || translations['en'][k] || key;
   };
 
   const renderAppModule = (appId: AppModule) => {
@@ -623,7 +626,7 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
             <Launchpad 
                 onLaunch={openWindow} 
                 onClose={() => setIsLaunchpadOpen(false)}
-                appIcons={Dock.appIcons}
+                appIcons={appIcons}
                 appNames={Object.fromEntries(Object.values(AppModule).map(id => [id, t(id.toLowerCase() as keyof typeof translations['en'])]))}
             />
         )}

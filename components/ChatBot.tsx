@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Send, BrainCircuit, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { ChatMessage } from '../types';
+import { ChatMessage, Project } from '../types';
 import { createChatSession, sendMessageStream } from '../services/geminiService';
 import { Chat, GenerateContentResponse, FunctionCall } from "@google/genai";
 import { LanguageContext } from '../contexts/LanguageContext';
@@ -87,7 +87,7 @@ const ChatView: React.FC<ChatViewProps> = ({ t, onAiAction }) => {
   
   const handleConfirmAction = async (messageId: string, funcCall: FunctionCall) => {
     setMessages(prev => prev.map(msg => msg.id === messageId ? { ...msg, isAwaitingConfirmation: false, isConfirmed: true } : msg));
-    onAiAction(funcCall.name || 'unknown', funcCall.args);
+    onAiAction(funcCall.name || 'unknown', funcCall.args || {});
 
     setIsLoading(true);
     if (chatSessionRef.current) {
