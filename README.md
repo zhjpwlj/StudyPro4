@@ -14,6 +14,7 @@ StudyPro OS is a comprehensive, all-in-one productivity operating system designe
 - **Customizable Themes**: Personalize your workspace with various wallpapers (including live backgrounds), accent colors, and dark/light modes.
 - **Cloud Sync & Backup**: Securely backup your data to Supabase and sync across devices.
 - **Local Data Management**: Export and import your data as JSON files for local backups.
+- **Engineering Excellence**: Built-in bundle analysis, type checking, and build statistics for optimal performance.
 
 ## 🛠️ Tech Stack
 
