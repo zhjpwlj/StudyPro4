@@ -6,20 +6,21 @@ import Login from './Login';
 import { Loader2 } from 'lucide-react';
 import { wallpapers } from '../config/theme';
 import { usePersistentState } from '../hooks/usePersistentState';
+import { User } from '@supabase/supabase-js';
 
 // Create a mock user for the demo mode
-const demoUser: { [key: string]: unknown } = {
+const demoUser: User = {
     id: 'demo-user-12345',
     app_metadata: { provider: 'email' },
     user_metadata: { name: 'Demo User' },
     aud: 'authenticated',
     created_at: new Date().toISOString(),
     email: 'demo@studypro.app',
-};
+} as unknown as User;
 
 const AuthGate: React.FC = () => {
-    const [session, setSession] = useState<{ user: { [key: string]: unknown }; access_token?: string } | null>(null);
-    const [user, setUser] = useState<{ [key: string]: unknown } | null>(null);
+    const [session, setSession] = useState<{ user: User; access_token?: string } | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [isVerifying, setIsVerifying] = useState(false);
     
@@ -63,11 +64,12 @@ const AuthGate: React.FC = () => {
 
             // Set new data from backup
             Object.keys(data).forEach(key => {
-                if (key === 'settings' && typeof data[key] === 'object') {
-                    Object.keys(data.settings).forEach(settingKey => {
+                if (key === 'settings' && data[key] && typeof data[key] === 'object') {
+                    const settings = data[key] as Record<string, unknown>;
+                    Object.keys(settings).forEach(settingKey => {
                         const localStorageKey = (dataMap.settings as Record<string, string>)[settingKey];
                         if (localStorageKey) {
-                           localStorage.setItem(localStorageKey, JSON.stringify(data.settings[settingKey]));
+                           localStorage.setItem(localStorageKey, JSON.stringify(settings[settingKey]));
                         }
                     });
                 } else if (dataMap[key]) {
@@ -101,7 +103,7 @@ const AuthGate: React.FC = () => {
             }
         };
 
-        const restoreAndSetData = async (currentUser: { [key: string]: unknown }) => {
+        const restoreAndSetData = async (currentUser: User) => {
             try {
                 const { data, error } = await restoreData(currentUser);
                 if (error) {

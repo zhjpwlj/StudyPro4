@@ -26,6 +26,7 @@ import { wallpapers, accentColors } from './config/theme';
 import { backupData } from './services/supabaseService';
 import { translations } from './utils/translations';
 import { LanguageContext } from './contexts/LanguageContext';
+import { User } from '@supabase/supabase-js';
 
 import { setApiKey } from './services/geminiService';
 
@@ -100,7 +101,7 @@ const getDefaultWindowSize = (appId: AppModule) => {
 };
 
 interface AppProps {
-  user: { email: string; };
+  user: User;
   onRestoreData: (data: Record<string, unknown>) => void;
 }
 
@@ -370,12 +371,11 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
       URL.revokeObjectURL(url);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleImportData = (file: File) => {
       const reader = new FileReader();
       reader.onload = (e) => {
           try {
-              const data = JSON.parse(e.target?.result as string);
+              const data = JSON.parse(e.target?.result as string) as Record<string, unknown>;
               onRestoreData(data);
               alert('Data imported successfully!');
           } catch (err) {
@@ -394,7 +394,10 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
   const handleAiAction = (functionName: string, args: Record<string, unknown>) => {
     switch (functionName) {
       case 'addTask': {
-        const { title, projectName, deadline } = args;
+        const title = typeof args.title === 'string' ? args.title : 'New Task';
+        const projectName = typeof args.projectName === 'string' ? args.projectName : undefined;
+        const deadline = typeof args.deadline === 'string' ? args.deadline : undefined;
+        
         let projectId = projects[0]?.id || 'proj-0';
         if (projectName) {
           const foundProject = projects.find(p => p.name.toLowerCase().includes(projectName.toLowerCase()));
@@ -416,9 +419,12 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
         break;
       }
       case 'updateTask': {
-        const { oldTitle, newTitle, completed } = args;
+        const oldTitle = typeof args.oldTitle === 'string' ? args.oldTitle : '';
+        const newTitle = typeof args.newTitle === 'string' ? args.newTitle : undefined;
+        const completed = typeof args.completed === 'boolean' ? args.completed : undefined;
+
         setTasks(prev => prev.map(t => {
-            if (t.title.toLowerCase().includes(oldTitle.toLowerCase())) {
+            if (oldTitle && t.title.toLowerCase().includes(oldTitle.toLowerCase())) {
                 return {
                     ...t,
                     title: newTitle || t.title,
@@ -431,12 +437,18 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
         break;
       }
       case 'deleteTask': {
-        const { title } = args;
-        setTasks(prev => prev.filter(t => !t.title.toLowerCase().includes(title.toLowerCase())));
+        const title = typeof args.title === 'string' ? args.title : '';
+        if (title) {
+          setTasks(prev => prev.filter(t => !t.title.toLowerCase().includes(title.toLowerCase())));
+        }
         break;
       }
       case 'addEvent': {
-        const { title, date, startTime, endTime } = args;
+        const title = typeof args.title === 'string' ? args.title : 'New Event';
+        const date = typeof args.date === 'string' ? args.date : new Date().toISOString().split('T')[0];
+        const startTime = typeof args.startTime === 'string' ? args.startTime : undefined;
+        const endTime = typeof args.endTime === 'string' ? args.endTime : undefined;
+
         const newEvent: Omit<Event, 'id'> = {
           title,
           date,
@@ -448,23 +460,27 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
         break;
       }
       case 'addNote': {
-        const { title, content, category } = args;
+        const title = typeof args.title === 'string' ? args.title : 'New Note';
+        const content = typeof args.content === 'string' ? args.content : '';
+        const category = typeof args.category === 'string' ? args.category : 'General';
         const newNote: Note = {
           id: `note-${Date.now()}`,
           title,
           content,
-          category: category || 'General',
+          category,
           createdAt: Date.now(),
         };
         setNotes(prev => [newNote, ...prev]);
         break;
       }
       case 'addGoal': {
-        const { title, icon, color } = args;
+        const title = typeof args.title === 'string' ? args.title : 'New Goal';
+        const icon = typeof args.icon === 'string' ? args.icon : '🎯';
+        const color = typeof args.color === 'string' ? args.color : accentColors[Math.floor(Math.random() * accentColors.length)].hex;
         const newGoal: Omit<Goal, 'id'> = {
           title,
-          icon: icon || '🎯',
-          color: color || accentColors[Math.floor(Math.random() * accentColors.length)].hex,
+          icon,
+          color,
           streak: 0,
           completedDates: [],
           targetDaysPerWeek: 7,
@@ -473,7 +489,10 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
         break;
       }
       case 'addFlashcard': {
-        const { deckTitle, front, back } = args;
+        const deckTitle = typeof args.deckTitle === 'string' ? args.deckTitle : 'General';
+        const front = typeof args.front === 'string' ? args.front : '';
+        const back = typeof args.back === 'string' ? args.back : '';
+
         let deck = decks.find(d => d.title.toLowerCase().includes(deckTitle.toLowerCase()));
         if (!deck) {
           // Create deck if not found
@@ -501,7 +520,7 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
       case AppModule.POMODORO: return <PomodoroTimer timeEntries={timeEntries} activeTimer={activeTimer} onStartTimer={handleStartTimer} onStopTimer={handleStopTimer} />;
       case AppModule.SOCIAL: return <StudyRoom />;
       case AppModule.CHAT: return <ChatBot projects={projects} onAiAction={handleAiAction} />;
-      case AppModule.SETTINGS: return <Settings onExportData={handleExportData} onWipeData={() => setIsWipeModalOpen(true)} getAllData={getAllData} onRestoreData={onRestoreData} user={user} isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(p => !p)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} geminiApiKey={geminiApiKey} onSetGeminiApiKey={setGeminiApiKey} />;
+      case AppModule.SETTINGS: return <Settings onExportData={handleExportData} onImportData={handleImportData} onWipeData={() => setIsWipeModalOpen(true)} getAllData={getAllData} onRestoreData={onRestoreData} user={user} isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(p => !p)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} geminiApiKey={geminiApiKey} onSetGeminiApiKey={setGeminiApiKey} />;
       case AppModule.CALCULATOR: return <Calculator />;
       case AppModule.NOTES: return <Notes notes={notes} onAddNote={handleAddNote} onUpdateNote={handleUpdateNote} onDeleteNote={handleDeleteNote} />;
       case AppModule.WEATHER: return <Weather />;

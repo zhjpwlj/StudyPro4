@@ -1,18 +1,20 @@
 
 import React, { useState, useEffect, useContext } from 'react';
-import { Database, Cloud, Loader2, User as UserIcon, BrainCircuit, Key, ExternalLink, ShieldCheck, ShieldAlert, Globe, Palette, Sun, Moon, Check, Info } from 'lucide-react';
+import { Database, Cloud, Loader2, User as UserIcon, BrainCircuit, Key, ExternalLink, ShieldCheck, ShieldAlert, Globe, Palette, Sun, Moon, Check, Info, Upload } from 'lucide-react';
 import { backupData, restoreData, getLastSyncTime, signOut } from '../services/supabaseService';
 import ConfirmationModal from './ConfirmationModal';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { Language } from '../types';
 import { wallpapers, wallpaperCategories, accentColors } from '../config/theme';
+import { User } from '@supabase/supabase-js';
 
 interface SettingsProps {
   onExportData: () => void;
+  onImportData: (file: File) => void;
   onWipeData: () => void;
   getAllData: () => Record<string, unknown>;
   onRestoreData: (data: Record<string, unknown>) => void;
-  user: { email: string; };
+  user: User;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   accentColor: string;
@@ -24,7 +26,7 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = (props) => {
-  const { onExportData, onWipeData, getAllData, onRestoreData, user, isDarkMode, onToggleDarkMode, accentColor, onSetAccentColor, wallpaper, onSetWallpaper, geminiApiKey, onSetGeminiApiKey } = props;
+  const { onExportData, onImportData, onWipeData, getAllData, onRestoreData, user, isDarkMode, onToggleDarkMode, accentColor, onSetAccentColor, wallpaper, onSetWallpaper, geminiApiKey, onSetGeminiApiKey } = props;
   const [activeTab, setActiveTab] = useState('general');
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -53,7 +55,7 @@ const Settings: React.FC<SettingsProps> = (props) => {
     setIsSyncing(true);
     setSyncError(null);
     try {
-        const { error } = await backupData(getAllData());
+        const { error } = await backupData(user, getAllData());
         if (error) throw error;
         await fetchLastSync();
     } catch (error: unknown) {
@@ -67,9 +69,9 @@ const Settings: React.FC<SettingsProps> = (props) => {
     setIsSyncing(true);
     setSyncError(null);
     try {
-        const { data, error } = await restoreData();
+        const { data, error } = await restoreData(user);
         if (error) throw error;
-        if (data) onRestoreData(data);
+        if (data) onRestoreData(data as Record<string, unknown>);
         else setSyncError("No backup found to restore.");
     } catch (error: unknown) {
         setSyncError(`Restore failed: ${(error as Error).message}`);
@@ -117,6 +119,25 @@ const Settings: React.FC<SettingsProps> = (props) => {
         <section>
           <h3 className="text-lg font-bold mb-3 text-slate-900 dark:text-white">Local Data Management</h3>
           <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50 space-y-4 divide-y divide-gray-200 dark:divide-slate-700/50">
+            <div className="flex items-center justify-between pt-4 first:pt-0">
+              <div>
+                <h4 className="font-semibold">Import Data</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Restore your data from a local JSON file.</p>
+              </div>
+              <label className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer flex items-center gap-2">
+                <Upload size={16} />
+                <span>Import</span>
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) onImportData(file);
+                  }} 
+                />
+              </label>
+            </div>
             <div className="flex items-center justify-between pt-4 first:pt-0">
               <div>
                 <h4 className="font-semibold">{t('export')}</h4>
