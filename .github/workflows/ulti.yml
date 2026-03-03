@@ -43,8 +43,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      artifact: site-build
 
     steps:
       - uses: actions/checkout@v4
@@ -132,7 +130,11 @@ jobs:
             --dir=${{ env.DIST_DIR }} \
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
-            --json)
+            --json \
+            --no-build \
+            --message="CI Preview Deploy")
+
+          echo "$RESP"
 
           URL=$(echo "$RESP" | jq -r '.deploy_url // .url // empty')
           echo "preview_url=$URL" >> $GITHUB_OUTPUT
@@ -152,15 +154,13 @@ jobs:
             });
 
 # ===============================
-# 4️⃣ LIGHTHOUSE (STABLE)
+# 4️⃣ LIGHTHOUSE
 # ===============================
 
   lighthouse:
     needs: netlify-preview
     if: ${{ needs.netlify-preview.outputs.preview_url != '' }}
     runs-on: ubuntu-latest
-    outputs:
-      score: ${{ steps.lh.outputs.score }}
 
     steps:
       - run: npm install -g lighthouse
@@ -169,11 +169,12 @@ jobs:
         id: lh
         run: |
           URL="${{ needs.netlify-preview.outputs.preview_url }}"
+
           lighthouse "$URL" \
             --chrome-flags="--headless" \
             --output=json \
             --output-path=report.json \
-            --quiet
+            --quiet || exit 1
 
           SCORE=$(jq '.categories.performance.score * 100 | floor' report.json)
           echo "score=$SCORE" >> $GITHUB_OUTPUT
@@ -245,4 +246,6 @@ jobs:
             --prod \
             --dir=${{ env.DIST_DIR }} \
             --site=$NETLIFY_SITE_ID \
-            --auth=$NETLIFY_AUTH_TOKEN
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --no-build \
+            --message="CI Production Deploy"
