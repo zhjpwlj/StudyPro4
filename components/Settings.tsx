@@ -96,6 +96,7 @@ const Settings: React.FC<SettingsProps> = (props) => {
                     <option value="en">English</option>
                     <option value="jp">日本語</option>
                     <option value="cn">中文</option>
+                    <option value="es">Español</option>
                 </select>
              </div>
           </div>
