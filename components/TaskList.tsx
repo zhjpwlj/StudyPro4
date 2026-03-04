@@ -1,8 +1,9 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { Task, Project } from '../types';
 import { Plus, ChevronDown, Check, Sun, Inbox, Calendar, Star, Layers, CheckSquare } from 'lucide-react';
 import TaskDetail from './TaskDetail';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 interface TaskListProps {
   tasks: Task[];
@@ -21,6 +22,7 @@ const priorityMap = {
 };
 
 const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProjects }) => {
+  const { t, language } = useContext(LanguageContext);
   const [activeFilter, setActiveFilter] = useState('inbox');
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
@@ -47,14 +49,14 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
   const completedTasks = useMemo(() => filteredTasks.filter(t => t.completed), [filteredTasks]);
 
   const currentTitle = useMemo(() => {
-      if(activeFilter === 'myday') return 'My Day';
-      if(activeFilter === 'inbox') return 'Inbox';
-      if(activeFilter === 'today') return 'Today';
-      if(activeFilter === 'planned') return 'Planned';
-      if(activeFilter === 'important') return 'Important';
-      if(activeFilter.startsWith('proj-')) return projects.find(p => p.id === activeFilter)?.name || 'Project';
-      return 'Tasks';
-  }, [activeFilter, projects]);
+      if(activeFilter === 'myday') return t('myDay');
+      if(activeFilter === 'inbox') return t('inbox');
+      if(activeFilter === 'today') return t('today');
+      if(activeFilter === 'planned') return t('planned');
+      if(activeFilter === 'important') return t('important');
+      if(activeFilter.startsWith('proj-')) return projects.find(p => p.id === activeFilter)?.name || t('projects');
+      return t('tasks');
+  }, [activeFilter, projects, t]);
 
   const handleAddProject = () => {
     if (!newProjectName.trim()) return;
@@ -101,25 +103,25 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
       <aside className="w-64 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col">
         <div className="p-4 space-y-1">
              <button onClick={() => setActiveFilter('myday')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeFilter === 'myday' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500' : 'text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'}`}>
-                <Sun size={18} /> My Day
+                <Sun size={18} /> {t('myDay')}
              </button>
              <button onClick={() => setActiveFilter('inbox')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeFilter === 'inbox' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-500' : 'text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'}`}>
-                <Inbox size={18} /> Inbox
+                <Inbox size={18} /> {t('inbox')}
              </button>
              <button onClick={() => setActiveFilter('today')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeFilter === 'today' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-500' : 'text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'}`}>
-                <Calendar size={18} /> Today
+                <Calendar size={18} /> {t('today')}
              </button>
              <button onClick={() => setActiveFilter('important')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeFilter === 'important' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-500' : 'text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'}`}>
-                <Star size={18} /> Important
+                <Star size={18} /> {t('important')}
              </button>
              <button onClick={() => setActiveFilter('planned')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeFilter === 'planned' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-500' : 'text-slate-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800'}`}>
-                <Layers size={18} /> Planned
+                <Layers size={18} /> {t('planned')}
              </button>
         </div>
         
         <div className="px-4 py-2 mt-2">
             <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Projects</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('projects')}</span>
                 <button onClick={() => setIsAddingProject(true)} className="text-gray-400 hover:text-slate-900 dark:hover:text-white"><Plus size={14}/></button>
             </div>
             <div className="space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar">
@@ -142,7 +144,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
                             onChange={e => setNewProjectName(e.target.value)} 
                             onBlur={() => !newProjectName && setIsAddingProject(false)}
                             onKeyDown={e => e.key === 'Enter' && handleAddProject()}
-                            placeholder="Project Name..."
+                            placeholder={t('projectNamePlaceholder')}
                             className="w-full bg-transparent border-b border-gray-300 dark:border-slate-700 text-sm focus:outline-none focus:border-[var(--accent-color)]"
                         />
                     </div>
@@ -152,7 +154,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
 
         {allTags.length > 0 && (
             <div className="px-4 py-2 mt-2">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Tags</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">{t('tags')}</span>
                 <div className="flex flex-wrap gap-2">
                     {allTags.map(tag => (
                         <button 
@@ -173,7 +175,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
         <header className="flex-shrink-0 px-8 py-6">
              <h1 className="text-3xl font-bold flex items-center gap-3">
                  {currentTitle} 
-                 <span className="text-lg font-normal text-gray-400">{new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}</span>
+                 <span className="text-lg font-normal text-gray-400">{new Date().toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { weekday: 'short', day: 'numeric' })}</span>
              </h1>
         </header>
 
@@ -181,7 +183,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
              {filteredTasks.length === 0 && (
                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
                      <CheckSquare size={64} className="mb-4 opacity-10"/>
-                     <p>No tasks found. Relax!</p>
+                     <p>{t('noTasksFound')}</p>
                  </div>
              )}
              
@@ -208,13 +210,13 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
                                  {task.projectId && (
                                      <span className="flex items-center gap-1">
                                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: projects.find(p => p.id === task.projectId)?.color || '#ccc' }}></div>
-                                         {projects.find(p => p.id === task.projectId)?.name || 'Inbox'}
+                                         {projects.find(p => p.id === task.projectId)?.name || t('inbox')}
                                      </span>
                                  )}
                                  {task.deadline && (
                                      <span className={`flex items-center gap-1 ${task.deadline < new Date().toISOString().split('T')[0] ? 'text-red-400' : ''}`}>
                                          <Calendar size={10} />
-                                         {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                         {new Date(task.deadline).toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { month: 'short', day: 'numeric' })}
                                      </span>
                                  )}
                                  {task.subtasks && task.subtasks.length > 0 && (
@@ -234,7 +236,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
                  <div className="mt-8">
                      <button onClick={() => setIsCompletedVisible(!isCompletedVisible)} className="flex items-center gap-2 text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                          <ChevronDown size={14} className={`transition-transform ${isCompletedVisible ? '' : '-rotate-90'}`}/>
-                         Completed ({completedTasks.length})
+                         {t('completed')} ({completedTasks.length})
                      </button>
                      
                      {isCompletedVisible && (
@@ -267,7 +269,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, projects, setTasks, setProje
                     type="text" 
                     value={newTaskName}
                     onChange={(e) => setNewTaskName(e.target.value)}
-                    placeholder="Add a task" 
+                    placeholder={t('addTaskPlaceholder')}
                     className="w-full bg-white dark:bg-slate-800 border-0 rounded-2xl pl-12 pr-4 py-4 text-slate-900 dark:text-white placeholder:text-gray-400 focus:ring-2 focus:ring-[var(--accent-color)] shadow-lg"
                  />
             </form>

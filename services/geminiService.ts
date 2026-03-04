@@ -111,15 +111,14 @@ const tools: FunctionDeclaration[] = [
   }
 ];
 
-let currentApiKey: string | null = null;
-
-export const setApiKey = (key: string) => {
-  currentApiKey = key;
+const getApiKey = () => {
+  return process.env.GEMINI_API_KEY || null;
 };
 
 export const createChatSession = (): Chat | null => {
-  if (!currentApiKey) return null;
-  const ai = new GoogleGenAI({ apiKey: currentApiKey });
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+  const ai = new GoogleGenAI({ apiKey });
   return ai.chats.create({
     model: 'gemini-3.1-pro-preview',
     config: {
@@ -147,8 +146,9 @@ export const sendMessageStream = async (
 
 export const getDailyPrompt = async (): Promise<string> => {
   try {
-    if (!currentApiKey) return "What is your main focus for today?";
-    const ai = new GoogleGenAI({ apiKey: currentApiKey });
+    const apiKey = getApiKey();
+    if (!apiKey) return "What is your main focus for today?";
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: "Generate a short, one-sentence reflective prompt for a student or professional to start their day.",
@@ -161,8 +161,9 @@ export const getDailyPrompt = async (): Promise<string> => {
 
 export const generateSubtasks = async (title: string, notes?: string): Promise<string[]> => {
   try {
-    if (!currentApiKey) return [];
-    const ai = new GoogleGenAI({ apiKey: currentApiKey });
+    const apiKey = getApiKey();
+    if (!apiKey) return [];
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Break down the task "${title}" ${notes ? `(Context: ${notes})` : ''} into a JSON list of subtasks strings.`,
@@ -188,8 +189,9 @@ export const generateSubtasks = async (title: string, notes?: string): Promise<s
 
 export const parseEventFromText = async (text: string): Promise<Partial<Omit<Event, 'id' | 'color'>>> => {
   try {
-    if (!currentApiKey) return {};
-    const ai = new GoogleGenAI({ apiKey: currentApiKey });
+    const apiKey = getApiKey();
+    if (!apiKey) return {};
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Extract event details from "${text}" relative to ${new Date().toISOString()} as JSON.`,

@@ -15,6 +15,7 @@ const cities = [
 ];
 
 const WorldClock = () => {
+  const { t, language } = useContext(LanguageContext);
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -23,14 +24,14 @@ const WorldClock = () => {
   }, []);
 
   const formatTime = (date: Date, timeZone: string) => date.toLocaleTimeString('en-US', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false });
-  const formatDate = (date: Date, timeZone: string) => date.toLocaleDateString('en-US', { timeZone, weekday: 'short', month: 'short', day: 'numeric' });
+  const formatDate = (date: Date, timeZone: string) => date.toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { timeZone, weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
     <div className="p-6 space-y-6 animate-fade-in h-full overflow-y-auto">
       <div>
-        <h3 className="text-lg font-semibold text-slate-500 dark:text-slate-400">Local Time</h3>
+        <h3 className="text-lg font-semibold text-slate-500 dark:text-slate-400">{t('localTime')}</h3>
         <p className="text-5xl font-bold font-mono tracking-tighter text-slate-900 dark:text-white">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</p>
-        <p className="text-slate-500 dark:text-slate-300 text-lg">{time.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p className="text-slate-500 dark:text-slate-300 text-lg">{time.toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
       <div className="grid grid-cols-1 gap-4">
         {cities.map(city => (
@@ -55,6 +56,7 @@ const formatStopwatchTime = (time: number) => {
 };
 
 const Stopwatch = () => {
+    const { t } = useContext(LanguageContext);
     const [time, setTime] = useState(0);
     const [isRunning, setIsRunning] = useState(false);
     const [laps, setLaps] = useState<number[]>([]);
@@ -87,7 +89,7 @@ const Stopwatch = () => {
             <div className="h-40 w-full overflow-y-auto bg-slate-100 dark:bg-slate-800/50 rounded-lg p-2 space-y-2">
                 {laps.map((lap, i) => (
                     <div key={i} className="flex justify-between p-2 text-sm font-mono rounded bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-                        <span>Lap {laps.length - i}</span>
+                        <span>{t('lap')} {laps.length - i}</span>
                         <span>{formatStopwatchTime(lap - (laps[i+1] || 0) )}</span>
                         <span>{formatStopwatchTime(lap)}</span>
                     </div>
@@ -98,6 +100,7 @@ const Stopwatch = () => {
 };
 
 const Timer = () => {
+    const { t } = useContext(LanguageContext);
     const [duration, setDuration] = useState(300);
     const [timeLeft, setTimeLeft] = useState(duration);
     const [isActive, setIsActive] = useState(false);
@@ -149,17 +152,17 @@ const Timer = () => {
             <div className="flex gap-2 items-center font-mono text-xl">
                  <div className="flex flex-col items-center">
                     <input type="number" min="0" max="23" value={formatTimeParts(duration).h} onChange={e => handleDurationChange(e, 'h')} disabled={isActive} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded-lg p-2 focus:ring-2 focus:ring-[var(--accent-color)]" />
-                    <span className="text-xs text-slate-500 mt-1">hr</span>
+                    <span className="text-xs text-slate-500 mt-1">{t('hr')}</span>
                  </div>
                  <span className="mb-4">:</span>
                  <div className="flex flex-col items-center">
                     <input type="number" min="0" max="59" value={formatTimeParts(duration).m} onChange={e => handleDurationChange(e, 'm')} disabled={isActive} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded-lg p-2 focus:ring-2 focus:ring-[var(--accent-color)]" />
-                    <span className="text-xs text-slate-500 mt-1">min</span>
+                    <span className="text-xs text-slate-500 mt-1">{t('min')}</span>
                  </div>
                  <span className="mb-4">:</span>
                  <div className="flex flex-col items-center">
                     <input type="number" min="0" max="59" value={formatTimeParts(duration).s} onChange={e => handleDurationChange(e, 's')} disabled={isActive} className="w-16 bg-slate-100 dark:bg-slate-800 text-center rounded-lg p-2 focus:ring-2 focus:ring-[var(--accent-color)]" />
-                    <span className="text-xs text-slate-500 mt-1">sec</span>
+                    <span className="text-xs text-slate-500 mt-1">{t('sec')}</span>
                  </div>
             </div>
 
@@ -184,6 +187,7 @@ interface CalendarProps {
 }
 
 const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' | 'onAddEvent' | 'onDeleteEvent'>> = ({ events, tasks, classes, onAddEvent, onDeleteEvent }) => {
+    const { t, language } = useContext(LanguageContext);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isAddEventOpen, setIsAddEventOpen] = useState(false);
@@ -255,11 +259,11 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
             <div className="flex-1 flex flex-col p-4">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
-                        {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        {currentDate.toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { month: 'long', year: 'numeric' })}
                     </h2>
                     <div className="flex gap-2">
                         <button onClick={prevMonth} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full"><ChevronLeft size={20}/></button>
-                        <button onClick={() => { setCurrentDate(new Date()); setSelectedDate(new Date()); }} className="px-3 py-1 text-sm bg-gray-200 dark:bg-slate-700 rounded-lg font-medium">Today</button>
+                        <button onClick={() => { setCurrentDate(new Date()); setSelectedDate(new Date()); }} className="px-3 py-1 text-sm bg-gray-200 dark:bg-slate-700 rounded-lg font-medium">{t('today')}</button>
                         <button onClick={nextMonth} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full"><ChevronRight size={20}/></button>
                     </div>
                 </div>
@@ -307,8 +311,8 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
             <div className="w-80 border-l border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
                 <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950">
                     <div>
-                        <h3 className="font-bold">{selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}</h3>
-                        <p className="text-xs text-gray-500">{selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
+                        <h3 className="font-bold">{selectedDate.toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { weekday: 'long' })}</h3>
+                        <p className="text-xs text-gray-500">{selectedDate.toLocaleDateString(language === 'en' ? 'en-US' : language === 'jp' ? 'ja-JP' : 'zh-CN', { month: 'long', day: 'numeric' })}</p>
                     </div>
                     <button onClick={() => setIsAddEventOpen(true)} className="p-2 bg-[var(--accent-color)] text-white rounded-lg shadow-sm hover:brightness-110"><Plus size={18}/></button>
                 </div>
@@ -322,15 +326,15 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
                                     type="text" 
                                     value={quickAddText}
                                     onChange={e => setQuickAddText(e.target.value)}
-                                    placeholder="Lunch at 1pm tomorrow..."
+                                    placeholder={t('addEventPlaceholder')}
                                     className="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
                                 />
                                 <button type="button" onClick={() => setIsAddEventOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={18}/></button>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-[10px] text-gray-400 flex items-center gap-1"><Sparkles size={10}/> AI Powered</span>
+                                <span className="text-[10px] text-gray-400 flex items-center gap-1"><Sparkles size={10}/> {t('aiPowered')}</span>
                                 <button type="submit" disabled={isProcessing || !quickAddText} className="text-xs bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1 rounded font-bold disabled:opacity-50">
-                                    {isProcessing ? <Loader2 size={12} className="animate-spin"/> : 'Add'}
+                                    {isProcessing ? <Loader2 size={12} className="animate-spin"/> : t('add')}
                                 </button>
                             </div>
                         </form>
@@ -341,7 +345,7 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
                     {/* Events */}
                     {dayEvents.length > 0 && (
                         <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><CalendarIcon size={12}/> Events</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><CalendarIcon size={12}/> {t('events')}</h4>
                             <div className="space-y-2">
                                 {dayEvents.map(e => (
                                     <div key={e.id} className="flex gap-3 items-start group">
@@ -360,7 +364,7 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
                     {/* Classes */}
                     {dayClasses.length > 0 && (
                          <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><GraduationCap size={12}/> Classes</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><GraduationCap size={12}/> {t('classes')}</h4>
                             <div className="space-y-2">
                                 {dayClasses.map((c, i) => (
                                     <div key={i} className="flex gap-3 items-start p-2 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-900/20">
@@ -378,7 +382,7 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
                     {/* Tasks */}
                     {dayTasks.length > 0 && (
                          <div>
-                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><CheckSquare size={12}/> Due Today</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1"><CheckSquare size={12}/> {t('dueToday')}</h4>
                             <div className="space-y-2">
                                 {dayTasks.map(t => (
                                     <div key={t.id} className="flex gap-2 items-center p-2 bg-orange-50 dark:bg-orange-900/10 rounded-lg border border-orange-100 dark:border-orange-900/20">
@@ -395,7 +399,7 @@ const CalendarView: React.FC<Pick<CalendarProps, 'events' | 'tasks' | 'classes' 
                     {dayEvents.length === 0 && dayTasks.length === 0 && dayClasses.length === 0 && (
                         <div className="text-center py-8 text-gray-400">
                             <Sparkles size={32} className="mx-auto mb-2 opacity-20"/>
-                            <p className="text-sm">Nothing scheduled for today.</p>
+                            <p className="text-sm">{t('nothingScheduled')}</p>
                         </div>
                     )}
                 </div>

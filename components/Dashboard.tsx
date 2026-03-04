@@ -1,8 +1,9 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { Task, Project, TimeEntry, Event, Class, Goal } from '../types';
 import { PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { CalendarDays, CheckCircle2, Circle, Palette, GraduationCap, CheckSquare, Target } from 'lucide-react';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 interface DashboardProps {
   tasks: Task[];
@@ -28,6 +29,7 @@ const AgendaItem: React.FC<{ time: string; title: string; color: string; icon: R
 
 const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, timeEntries, events, classes, goals }) => {
     const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id || '');
+    const { t } = useContext(LanguageContext);
 
     const pieData = useMemo(() => {
         return projects.map(project => ({
@@ -129,7 +131,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
                 {/* Breakdown Pie Chart */}
                 <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col xl:col-span-1">
-                    <h2 className="text-lg font-semibold mb-4">Project Breakdown</h2>
+                    <h2 className="text-lg font-semibold mb-4">{t('projectBreakdown')}</h2>
                     <div className="flex-1 min-h-[250px] relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -142,27 +144,27 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                             </PieChart>
                         </ResponsiveContainer>
                         {pieData.length === 0 && (
-                            <div className="absolute inset-0 flex items-center justify-center text-slate-500">No data</div>
+                            <div className="absolute inset-0 flex items-center justify-center text-slate-500">{t('noData')}</div>
                         )}
                     </div>
                 </div>
 
                 {/* Goals Widget */}
                  <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col xl:col-span-1">
-                    <h2 className="text-lg font-semibold mb-4">Goal Progress</h2>
+                    <h2 className="text-lg font-semibold mb-4">{t('goalProgress')}</h2>
                     <div className="flex-1 flex flex-col justify-between">
                         <div className="space-y-2">
                            <div className="flex justify-between text-sm text-slate-400">
-                               <span>Progress</span>
+                               <span>{t('progress')}</span>
                                <span>{Math.round(goalsProgress)}%</span>
                            </div>
                            <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
                                <div className="h-2 transition-all duration-500 rounded-full bg-emerald-500" style={{ width: `${goalsProgress}%` }}></div>
                            </div>
-                           <p className="text-xs text-right text-slate-500">{goalsCompleted} / {goals.length} Goals</p>
+                           <p className="text-xs text-right text-slate-500">{goalsCompleted} / {goals.length} {t('goals')}</p>
                         </div>
                         <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50 mt-4">
-                           <h3 className="text-sm font-medium text-slate-300 mb-2">Next Goal</h3>
+                           <h3 className="text-sm font-medium text-slate-300 mb-2">{t('nextGoal')}</h3>
                            {nextIncompleteGoal ? (
                                 <div className="flex items-start gap-3">
                                     <Target size={16} className="mt-1 text-slate-500" />
@@ -171,10 +173,10 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                            ) : goals.length > 0 ? (
                                 <div className="flex items-center gap-2 text-green-400 text-sm">
                                     <CheckCircle2 size={16} />
-                                    <span>All goals completed!</span>
+                                    <span>{t('allGoalsCompleted')}</span>
                                 </div>
                            ) : (
-                                <p className="text-sm text-slate-500">No goals set yet.</p>
+                                <p className="text-sm text-slate-500">{t('noGoalsYet')}</p>
                            )}
                         </div>
                     </div>
@@ -182,15 +184,15 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
 
                 {/* Agenda */}
                 <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col xl:col-span-2">
-                    <h2 className="text-lg font-semibold mb-4">Agenda for Today</h2>
+                    <h2 className="text-lg font-semibold mb-4">{t('agendaToday')}</h2>
                     <div className="flex-1 space-y-4 overflow-y-auto pr-2">
                         {agendaItems.length > 0 ? agendaItems.map((item, index) => (
                             <AgendaItem key={index} {...item} />
                         )) : (
                             <div className="h-full flex flex-col items-center justify-center text-slate-500">
                                 <CheckCircle2 size={32} className="mb-2"/>
-                                <p className="font-medium">All clear for today!</p>
-                                <p className="text-sm">No events or deadlines scheduled.</p>
+                                <p className="font-medium">{t('allClear')}</p>
+                                <p className="text-sm">{t('noEvents')}</p>
                             </div>
                         )}
                     </div>
@@ -202,7 +204,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                 {/* Project Summary */}
                 <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col">
                     <div className="flex justify-between items-start mb-4">
-                        <h2 className="text-lg font-semibold">Project Summary</h2>
+                        <h2 className="text-lg font-semibold">{t('projectSummary')}</h2>
                         <div className="flex items-center gap-2">
                              <Palette size={16} className="text-slate-400"/>
                              <input type="color" value={selectedProjectColor} onChange={handleColorChange} className="w-6 h-6 rounded border-none p-0 bg-transparent cursor-pointer" title="Change project color" />
@@ -219,17 +221,17 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                         <div className="space-y-6 flex-1">
                              <div className="space-y-2">
                                 <div className="flex justify-between text-sm text-slate-400">
-                                    <span>Progress</span>
+                                    <span>{t('progress')}</span>
                                     <span>{Math.round(progress)}%</span>
                                 </div>
                                 <div className="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
                                     <div className="h-2 transition-all duration-500 rounded-full" style={{ width: `${progress}%`, backgroundColor: selectedProjectColor }}></div>
                                 </div>
-                                <p className="text-xs text-right text-slate-500">{completedTasksInProject} / {totalTasksInProject} Tasks</p>
+                                <p className="text-xs text-right text-slate-500">{completedTasksInProject} / {totalTasksInProject} {t('tasks')}</p>
                             </div>
                             
                             <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                               <h3 className="text-sm font-medium text-slate-300 mb-2">Next Up</h3>
+                               <h3 className="text-sm font-medium text-slate-300 mb-2">{t('nextUp')}</h3>
                                {nextIncompleteTask ? (
                                     <div className="flex items-start gap-3">
                                         <Circle size={16} className="mt-1 text-slate-500" />
@@ -246,10 +248,10 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                                ) : totalTasksInProject > 0 ? (
                                     <div className="flex items-center gap-2 text-green-400 text-sm">
                                         <CheckCircle2 size={16} />
-                                        <span>All tasks completed!</span>
+                                        <span>{t('allTasksCompleted')}</span>
                                     </div>
                                ) : (
-                                    <p className="text-sm text-slate-500">No tasks created yet.</p>
+                                    <p className="text-sm text-slate-500">{t('noTasksYet')}</p>
                                )}
                             </div>
                         </div>
@@ -258,7 +260,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
 
                  {/* Focus Duration */}
                 <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 p-6 rounded-xl">
-                    <h2 className="text-lg font-semibold mb-4">Focus Duration by Project (Minutes)</h2>
+                    <h2 className="text-lg font-semibold mb-4">{t('focusDuration')}</h2>
                     <div className="h-[250px] w-full relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={barData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
@@ -272,7 +274,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, projects, setProjects, tim
                             </BarChart>
                         </ResponsiveContainer>
                         {barData.length === 0 && (
-                             <div className="absolute inset-0 flex items-center justify-center text-slate-500 pt-10">No focus data yet</div>
+                             <div className="absolute inset-0 flex items-center justify-center text-slate-500 pt-10">{t('noFocusData')}</div>
                         )}
                     </div>
                 </div>

@@ -1,7 +1,8 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Users, Zap } from 'lucide-react';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 interface Desk {
   id: number;
@@ -9,6 +10,7 @@ interface Desk {
 }
 
 const StudyRoom: React.FC = () => {
+  const { t } = useContext(LanguageContext);
   const [desks, setDesks] = useState<Desk[]>(Array.from({ length: 20 }, (_, i) => {
       // Mock initial data
       if (i === 2) return { id: i, occupant: { name: 'Sarah', status: 'Reading', color: '#f472b6' } };
@@ -33,7 +35,7 @@ const StudyRoom: React.FC = () => {
 
     setDesks(prev => prev.map(d => d.id === id ? { 
         ...d, 
-        occupant: { name: 'You', status: status, color: 'var(--accent-color)' } 
+        occupant: { name: t('you'), status: status, color: 'var(--accent-color)' } 
     } : d));
     setMySeat(id);
   };
@@ -48,14 +50,14 @@ const StudyRoom: React.FC = () => {
          <div>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Users size={20} className="text-indigo-500"/>
-                Virtual Library
+                {t('virtualLibrary')}
             </h2>
-            <p className="text-xs text-slate-500">Silence is golden. Pick a seat to start focusing.</p>
+            <p className="text-xs text-slate-500">{t('librarySubtitle')}</p>
          </div>
          <div className="flex items-center gap-2">
              <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-bold flex items-center gap-1">
                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                 {desks.filter(d => d.occupant).length} Online
+                 {desks.filter(d => d.occupant).length} {t('online')}
              </span>
          </div>
       </header>
@@ -65,8 +67,8 @@ const StudyRoom: React.FC = () => {
               {desks.map((desk) => (
                   <button
                     key={desk.id}
-                    onClick={() => !desk.occupant || desk.occupant.name === 'You' ? handleSit(desk.id) : null}
-                    disabled={!!desk.occupant && desk.occupant.name !== 'You'}
+                    onClick={() => !desk.occupant || desk.occupant.name === t('you') ? handleSit(desk.id) : null}
+                    disabled={!!desk.occupant && desk.occupant.name !== t('you')}
                     className={`
                         aspect-[4/3] rounded-lg relative transition-all duration-300 group
                         ${desk.occupant 
@@ -90,7 +92,7 @@ const StudyRoom: React.FC = () => {
                               </div>
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 text-slate-400 font-medium text-xs">
-                                Sit Here
+                                {t('sitHere')}
                             </div>
                           )}
                       </div>
@@ -109,20 +111,20 @@ const StudyRoom: React.FC = () => {
                       <Zap size={20} />
                   </div>
                   <div>
-                      <p className="font-bold text-sm dark:text-white">Current Status</p>
+                      <p className="font-bold text-sm dark:text-white">{t('currentStatus')}</p>
                       <select 
                         value={status} 
                         onChange={(e) => { setStatus(e.target.value); handleSit(mySeat); }} // Re-sit to update
                         className="text-xs bg-transparent border-none p-0 text-slate-500 focus:ring-0 cursor-pointer"
                       >
-                          <option>Focusing</option>
-                          <option>Reading</option>
-                          <option>Taking a Break</option>
+                          <option>{t('focusing')}</option>
+                          <option>{t('reading')}</option>
+                          <option>{t('takingBreak')}</option>
                       </select>
                   </div>
               </div>
               <button onClick={() => { handleSit(mySeat); }} className="text-sm text-red-500 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg transition-colors">
-                  Leave Seat
+                  {t('leaveSeat')}
               </button>
           </div>
       )}

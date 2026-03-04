@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { X, Search } from 'lucide-react';
 import { AppModule } from '../types';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 interface LaunchpadProps {
   onLaunch: (appId: AppModule) => void;
@@ -12,6 +13,7 @@ interface LaunchpadProps {
 const allApps: AppModule[] = Object.values(AppModule);
 
 const Launchpad: React.FC<LaunchpadProps> = ({ onLaunch, onClose, appIcons, appNames }) => {
+  const { t } = useContext(LanguageContext);
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredApps = useMemo(() => {
@@ -32,7 +34,7 @@ const Launchpad: React.FC<LaunchpadProps> = ({ onLaunch, onClose, appIcons, appN
         <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
         <input 
           type="text"
-          placeholder="Search..."
+          placeholder={t('searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-white/10 border border-white/20 rounded-lg py-3 pl-12 pr-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-accent"

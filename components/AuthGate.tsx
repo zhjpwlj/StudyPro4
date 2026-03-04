@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { getSession, onAuthStateChange, restoreData, signOut } from '../services/supabaseService';
-import App from '../App';
+const App = lazy(() => import('../App'));
 import Login from './Login';
 import { Loader2 } from 'lucide-react';
 import { wallpapers } from '../config/theme';
@@ -160,7 +160,21 @@ const AuthGate: React.FC = () => {
     }
     
     if (session && user) {
-        return <App user={user} onRestoreData={handleRestoreData} />;
+        return (
+            <Suspense fallback={
+                <div 
+                  className="h-screen w-screen flex items-center justify-center bg-cover bg-center" 
+                  style={{ backgroundImage: `url(${isDarkMode ? currentWallpaper.darkUrl : currentWallpaper.lightUrl})`}}
+                >
+                    <div className="flex flex-col items-center gap-4 p-8 bg-black/30 rounded-2xl backdrop-blur-md">
+                       <Loader2 size={48} className="animate-spin text-white" />
+                       <span className="text-white font-medium">Loading StudyPro...</span>
+                    </div>
+                </div>
+            }>
+                <App user={user} onRestoreData={handleRestoreData} />
+            </Suspense>
+        );
     }
 
     return (

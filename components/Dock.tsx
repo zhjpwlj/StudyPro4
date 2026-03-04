@@ -245,7 +245,7 @@ export default function Dock({ openWindows, onLaunch, onFocus, onToggleLaunchpad
             onMouseLeave={() => mouseX.set(Infinity)}
             className="absolute left-1/2 bottom-0 flex items-end gap-3 px-4 pb-3 -translate-x-1/2 z-10"
          >
-            <DockIcon mouseX={mouseX} onClick={() => handleIconClick(onToggleLaunchpad)} label="Launchpad">
+            <DockIcon mouseX={mouseX} onClick={() => handleIconClick(onToggleLaunchpad)} label={t('launchpad')}>
                  <Rocket className="w-full h-full" />
             </DockIcon>
 

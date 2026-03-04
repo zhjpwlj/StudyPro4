@@ -1,7 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Sun, Moon, Wifi, Check } from 'lucide-react';
 import { WindowConfig, AppModule } from '../types';
+import { LanguageContext } from '../contexts/LanguageContext';
+import { translations } from '../utils/translations';
 
 interface MenuBarProps {
   isDarkMode: boolean;
@@ -12,28 +14,14 @@ interface MenuBarProps {
   onMinimizeWindow: () => void;
   onToggleMaximize: () => void;
   onCloseAll: () => void;
+  onTileWindows: () => void;
   windows: WindowConfig[];
   activeWindowId: AppModule | null;
   onFocusWindow: (appId: AppModule) => void;
 }
 
-const getTitle = (id: AppModule) => {
-  const titles: Record<string, string> = {
-    [AppModule.DASHBOARD]: 'Dashboard',
-    [AppModule.TASKS]: 'Tasks',
-    [AppModule.POMODORO]: 'Focus Mode',
-    [AppModule.SOCIAL]: 'Study Room',
-    [AppModule.CHAT]: 'AI Assistant',
-    [AppModule.SETTINGS]: 'Settings',
-    [AppModule.CALCULATOR]: 'Calculator',
-    [AppModule.NOTES]: 'Notes',
-    [AppModule.WEATHER]: 'Weather',
-    [AppModule.CALENDAR]: 'Calendar',
-    [AppModule.GOALS]: 'Habits',
-    [AppModule.MUSIC]: 'Music',
-    [AppModule.FLASHCARDS]: 'Flashcards',
-  };
-  return titles[id] || 'Application';
+const getTitle = (id: AppModule, t: (key: keyof typeof translations['en']) => string) => {
+  return t(id.toLowerCase() as keyof typeof translations['en']);
 };
 
 const MenuItem: React.FC<{ onClick?: () => void, disabled?: boolean, children: React.ReactNode, shortcut?: string }> = ({ onClick, disabled, children, shortcut }) => (
@@ -51,6 +39,7 @@ const MenuBar: React.FC<MenuBarProps> = (props) => {
   const [time, setTime] = useState(new Date());
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { t } = useContext(LanguageContext);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -78,29 +67,30 @@ const MenuBar: React.FC<MenuBarProps> = (props) => {
   const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   const formatDate = (date: Date) => date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
-  const { isDarkMode, onToggleDarkMode, onNewTask, onOpenPreferences, onCloseWindow, onMinimizeWindow, onToggleMaximize, onCloseAll, windows, activeWindowId, onFocusWindow } = props;
+  const { isDarkMode, onToggleDarkMode, onNewTask, onOpenPreferences, onCloseWindow, onMinimizeWindow, onToggleMaximize, onCloseAll, onTileWindows, windows, activeWindowId, onFocusWindow } = props;
   const hasActiveWindow = !!activeWindowId;
 
   const menus = {
       'StudyPro': [
-          { label: 'About StudyPro', disabled: true },
+          { label: t('about'), disabled: true },
           'divider',
-          { label: 'Preferences...', action: onOpenPreferences, shortcut: '⌘,' },
+          { label: t('preferences'), action: onOpenPreferences, shortcut: '⌘,' },
       ],
-      'File': [
-          { label: 'New Task...', action: onNewTask, shortcut: '⌘N' },
-          { label: 'Close All Windows', action: onCloseAll, disabled: windows.length === 0, shortcut: '⌥⌘W' },
+      [t('file')]: [
+          { label: t('newTask'), action: onNewTask, shortcut: '⌘N' },
+          { label: t('closeAll'), action: onCloseAll, disabled: windows.length === 0, shortcut: '⌥⌘W' },
       ],
-      'Edit': [ { label: 'Undo', disabled: true }, { label: 'Redo', disabled: true }, { label: 'Copy', disabled: true } ],
-      'View': [
-          { label: 'Toggle Dark Mode', action: onToggleDarkMode, shortcut: '⌘T' },
+      [t('edit')]: [ { label: t('undo'), disabled: true }, { label: t('redo'), disabled: true }, { label: t('copy'), disabled: true } ],
+      [t('view')]: [
+          { label: t('toggleDarkMode'), action: onToggleDarkMode, shortcut: '⌘T' },
       ],
-      'Window': [
-          { label: 'Minimize', action: onMinimizeWindow, disabled: !hasActiveWindow, shortcut: '⌘M' },
-          { label: 'Zoom', action: onToggleMaximize, disabled: !hasActiveWindow },
-          { label: 'Close', action: onCloseWindow, disabled: !hasActiveWindow, shortcut: '⌘W' },
+      [t('window')]: [
+          { label: t('minimize'), action: onMinimizeWindow, disabled: !hasActiveWindow, shortcut: '⌘M' },
+          { label: t('zoom'), action: onToggleMaximize, disabled: !hasActiveWindow },
+          { label: t('tileWindows'), action: onTileWindows, disabled: windows.length === 0 },
+          { label: t('close'), action: onCloseWindow, disabled: !hasActiveWindow, shortcut: '⌘W' },
           'divider',
-          ...windows.map(w => ({ label: getTitle(w.id), action: () => onFocusWindow(w.id), checked: w.id === activeWindowId })),
+          ...windows.map(w => ({ label: getTitle(w.id, t), action: () => onFocusWindow(w.id), checked: w.id === activeWindowId })),
       ],
   };
 

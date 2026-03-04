@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { Music as MusicIcon, Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, ListMusic, AlertCircle, Loader2 } from 'lucide-react';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 const playlist = [
     { title: 'Lofi Study', artist: 'FASSounds', url: 'https://cdn.pixabay.com/audio/2022/05/27/audio_18182442cd.mp3' },
@@ -9,6 +10,7 @@ const playlist = [
 ];
 
 const Music: React.FC = () => {
+  const { t } = useContext(LanguageContext);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -34,13 +36,13 @@ const Music: React.FC = () => {
             playPromise.catch(e => {
                 console.error("Playback error:", e);
                 setIsPlaying(false);
-                setError("Playback failed. Interaction required.");
+                setError(t('playbackFailed'));
             });
         }
     } else if (!isPlaying && audioRef.current) {
         audioRef.current.pause();
     }
-  }, [isPlaying, currentTrackIndex]);
+  }, [isPlaying, currentTrackIndex, t]);
 
   const handleTimeUpdate = () => {
     if(audioRef.current && audioRef.current.duration) {
@@ -54,7 +56,7 @@ const Music: React.FC = () => {
 
   const handleError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
       console.error("Audio Error:", e);
-      setError("Unable to play track.");
+      setError(t('unableToPlay'));
       setIsPlaying(false);
       setIsBuffering(false);
   };

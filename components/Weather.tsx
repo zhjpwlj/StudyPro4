@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { Sun, Cloud, CloudRain, CloudSnow, Wind, Droplets, Loader2, MapPin, AlertTriangle, Search, LocateFixed, Sunrise, Sunset, Eye, Gauge } from 'lucide-react';
 import { usePersistentState } from '../hooks/usePersistentState';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 // Weather code mapping (from Open-Meteo documentation)
 const weatherConditions: { [code: number]: { description: string; icon: React.ElementType } } = {
@@ -63,7 +64,9 @@ interface WeatherData {
     };
 }
 
-const CurrentWeatherDetails = ({ weatherData }: { weatherData: WeatherData }) => (
+const CurrentWeatherDetails = ({ weatherData }: { weatherData: WeatherData }) => {
+    const { t } = useContext(LanguageContext);
+    return (
     <div className="text-center w-full animate-fade-in pt-4">
         <div className="flex items-center justify-center gap-2">
             <MapPin size={18} />
@@ -74,26 +77,29 @@ const CurrentWeatherDetails = ({ weatherData }: { weatherData: WeatherData }) =>
         </div>
         <p className="text-6xl font-bold">{Math.round(weatherData.current.temperature_2m)}°C</p>
         <p className="text-lg mt-2 font-medium">{getWeatherInfo(weatherData.current.weather_code).description}</p>
-        <p className="text-sm opacity-80">Feels like {Math.round(weatherData.current.apparent_temperature)}°C</p>
+        <p className="text-sm opacity-80">{t('feelsLike')} {Math.round(weatherData.current.apparent_temperature)}°C</p>
 
         <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4 text-left p-4 bg-black/20 rounded-lg max-w-sm mx-auto">
-            <div className="flex items-center gap-2"><Droplets size={16} /><span className="text-xs">Humidity: <strong>{weatherData.current.relative_humidity_2m}%</strong></span></div>
-            <div className="flex items-center gap-2"><Wind size={16} /><span className="text-xs">Wind: <strong>{Math.round(weatherData.current.wind_speed_10m)} km/h</strong></span></div>
-            <div className="flex items-center gap-2"><Gauge size={16} /><span className="text-xs">Pressure: <strong>{Math.round(weatherData.current.surface_pressure)} hPa</strong></span></div>
-            <div className="flex items-center gap-2"><Eye size={16} /><span className="text-xs">Visibility: <strong>{(weatherData.current.visibility / 1000).toFixed(1)} km</strong></span></div>
-            <div className="flex items-center gap-2"><Sunrise size={16} /><span className="text-xs">Sunrise: <strong>{formatTime(weatherData.daily.sunrise[0])}</strong></span></div>
-            <div className="flex items-center gap-2"><Sunset size={16} /><span className="text-xs">Sunset: <strong>{formatTime(weatherData.daily.sunset[0])}</strong></span></div>
+            <div className="flex items-center gap-2"><Droplets size={16} /><span className="text-xs">{t('humidity')}: <strong>{weatherData.current.relative_humidity_2m}%</strong></span></div>
+            <div className="flex items-center gap-2"><Wind size={16} /><span className="text-xs">{t('wind')}: <strong>{Math.round(weatherData.current.wind_speed_10m)} km/h</strong></span></div>
+            <div className="flex items-center gap-2"><Gauge size={16} /><span className="text-xs">{t('pressure')}: <strong>{Math.round(weatherData.current.surface_pressure)} hPa</strong></span></div>
+            <div className="flex items-center gap-2"><Eye size={16} /><span className="text-xs">{t('visibility')}: <strong>{(weatherData.current.visibility / 1000).toFixed(1)} km</strong></span></div>
+            <div className="flex items-center gap-2"><Sunrise size={16} /><span className="text-xs">{t('sunrise')}: <strong>{formatTime(weatherData.daily.sunrise[0])}</strong></span></div>
+            <div className="flex items-center gap-2"><Sunset size={16} /><span className="text-xs">{t('sunset')}: <strong>{formatTime(weatherData.daily.sunset[0])}</strong></span></div>
         </div>
     </div>
-);
+    );
+};
 
-const Forecast = ({ weatherData }: { weatherData: WeatherData }) => (
+const Forecast = ({ weatherData }: { weatherData: WeatherData }) => {
+    const { t } = useContext(LanguageContext);
+    return (
      <div className="w-full mt-6 animate-fade-in">
-         <h3 className="font-bold mb-3 text-left">7-Day Forecast</h3>
+         <h3 className="font-bold mb-3 text-left">{t('sevenDayForecast')}</h3>
          <div className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6">
              {weatherData.daily.time.map((day: string, index: number) => (
                  <div key={day} className="flex-shrink-0 flex flex-col items-center justify-between p-3 bg-black/20 rounded-lg w-20 h-32">
-                     <p className="font-bold text-sm">{index === 0 ? 'Today' : getDayOfWeek(day)}</p>
+                     <p className="font-bold text-sm">{index === 0 ? t('today') : getDayOfWeek(day)}</p>
                      {React.createElement(getWeatherInfo(weatherData.daily.weather_code[index]).icon, { size: 28, className:"my-1" })}
                      <div className="text-sm">
                        <span className="font-bold">{Math.round(weatherData.daily.temperature_2m_max[index])}°</span>
@@ -103,7 +109,8 @@ const Forecast = ({ weatherData }: { weatherData: WeatherData }) => (
              ))}
          </div>
      </div>
-);
+    );
+};
 
 interface Location {
     latitude: number;
@@ -112,6 +119,7 @@ interface Location {
 }
 
 const Weather: React.FC = () => {
+    const { t } = useContext(LanguageContext);
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -148,11 +156,11 @@ const Weather: React.FC = () => {
 
         } catch (err: unknown) {
             console.error("Failed to fetch weather data:", err);
-            setError("Could not fetch weather data. Please try again later.");
+            setError(t('weatherErrorDesc'));
         } finally {
             setIsLoading(false);
         }
-    }, [setLocation]);
+    }, [setLocation, t]);
 
     const handleUseMyLocation = useCallback(() => {
         if (navigator.geolocation) {
@@ -163,15 +171,15 @@ const Weather: React.FC = () => {
                     fetchWeather(position.coords.latitude, position.coords.longitude);
                 },
                 () => {
-                    setError("Location permission denied. Please enable it or search for a city.");
+                    setError(t('locationDenied'));
                     setIsLoading(false);
                 }
             );
         } else {
-            setError("Geolocation is not supported. Please search for a city.");
+            setError(t('geoNotSupported'));
             setIsLoading(false);
         }
-    }, [fetchWeather, setLocation]);
+    }, [fetchWeather, setLocation, t]);
 
     useEffect(() => {
         if (location) {
@@ -243,11 +251,11 @@ const Weather: React.FC = () => {
                 fetchWeather(parseFloat(lat), parseFloat(lon), bestName);
                 setSearchInput('');
             } else {
-                setError(`Could not find location: ${searchInput}`);
+                setError(`${t('weatherErrorDesc')} (${searchInput})`);
                 setIsLoading(false);
             }
         } catch {
-            setError('Failed to search for location.');
+            setError(t('weatherErrorDesc'));
             setIsLoading(false);
         }
     };
@@ -264,7 +272,7 @@ const Weather: React.FC = () => {
                            value={searchInput}
                            onChange={handleSearchInputChange}
                            onBlur={() => setTimeout(() => setSuggestions([]), 200)}
-                           placeholder="Search for a city..."
+                           placeholder={t('searchCity')}
                            className="w-full bg-black/20 border-0 rounded-lg pl-9 pr-9 py-2 text-white placeholder:text-white/50 focus:ring-2 focus:ring-white relative z-10"
                            autoComplete="off"
                        />
@@ -293,14 +301,14 @@ const Weather: React.FC = () => {
                     <div className="flex h-full items-center justify-center text-center">
                         <div>
                             <Loader2 size={48} className="animate-spin text-white mb-4 mx-auto" />
-                            <p className="font-medium">Fetching weather...</p>
+                            <p className="font-medium">{t('fetchingWeather')}</p>
                         </div>
                     </div>
                 ) : error ? (
                     <div className="flex h-full items-center justify-center text-center">
                         <div>
                             <AlertTriangle size={48} className="text-red-400 mb-4 mx-auto" />
-                            <p className="font-medium text-red-400">Error</p>
+                            <p className="font-medium text-red-400">{t('weatherError')}</p>
                             <p className="text-sm">{error}</p>
                         </div>
                     </div>

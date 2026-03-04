@@ -137,21 +137,21 @@ const ChatView: React.FC<ChatViewProps> = ({ t, onAiAction }) => {
   
   const renderConfirmation = (msg: ChatMessage) => {
     const { name, args } = msg.functionCall!;
-    let description = `Do you want to run: ${name}?`;
+    let description = `${t('runActionPrompt')} ${name}?`;
     
     if (name === 'addTask') {
-      description = `Add task: "${args.title}"?`;
-      if (args.projectName) description = `Add task "${args.title}" to project "${args.projectName}"?`;
-      if (args.deadline) description = `Add task "${args.title}" with deadline ${args.deadline}?`;
+      description = `${t('addTaskPrompt')} "${args.title}"?`;
+      if (args.projectName) description = t('addToProjectPrompt').replace('{title}', args.title as string).replace('{project}', args.projectName as string);
+      if (args.deadline) description = t('addWithDeadlinePrompt').replace('{title}', args.title as string).replace('{deadline}', args.deadline as string);
     } else if (name === 'addEvent') {
-      description = `Schedule "${args.title}" on ${args.date}?`;
-      if (args.startTime) description += ` at ${args.startTime}`;
+      description = t('scheduleEventPrompt').replace('{title}', args.title as string).replace('{date}', args.date as string);
+      if (args.startTime) description += ` ${t('atTime').replace('{time}', args.startTime as string)}`;
     } else if (name === 'addNote') {
-      description = `Create note: "${args.title}"?`;
+      description = `${t('createNotePrompt')} "${args.title}"?`;
     } else if (name === 'addGoal') {
-      description = `Start tracking habit: "${args.title}"?`;
+      description = `${t('trackHabitPrompt')} "${args.title}"?`;
     } else if (name === 'addFlashcard') {
-      description = `Add flashcard to "${args.deckTitle}"?`;
+      description = t('addFlashcardPrompt').replace('{deck}', args.deckTitle as string);
     }
 
     return (

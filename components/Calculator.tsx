@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Divide, X, Minus, Plus, Percent } from 'lucide-react';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 
 const Calculator: React.FC = () => {
+  const { t } = useContext(LanguageContext);
   const [displayValue, setDisplayValue] = useState('0');
   const [expression, setExpression] = useState('');
   const [isScientific, setIsScientific] = useState(false);
@@ -92,13 +94,13 @@ const Calculator: React.FC = () => {
                 onClick={() => setIsScientific(false)} 
                 className={`text-xs px-3 py-1.5 rounded-full transition-colors ${!isScientific ? 'bg-white text-slate-900 font-bold' : 'bg-slate-800 text-slate-400'}`}
             >
-                Basic
+                {t('basic')}
             </button>
             <button 
                 onClick={() => setIsScientific(true)} 
                 className={`text-xs px-3 py-1.5 rounded-full transition-colors ${isScientific ? 'bg-white text-slate-900 font-bold' : 'bg-slate-800 text-slate-400'}`}
             >
-                Scientific
+                {t('scientific')}
             </button>
           </div>
       </div>

@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Play, Pause, RotateCcw, Coffee, Brain, Trees, Square, Clock } from 'lucide-react';
 import { ActiveTimer, TimeEntry } from '../types';
+import { LanguageContext } from '../contexts/LanguageContext';
 
 interface PomodoroTimerProps {
   timeEntries: TimeEntry[];
@@ -35,6 +36,7 @@ const SimpleTree: React.FC<{ progress: number }> = ({ progress }) => {
 };
 
 const Pomodoro: React.FC = () => {
+  const { t } = useContext(LanguageContext);
   const [focusDuration, setFocusDuration] = useState(25 * 60);
   const [shortBreakDuration, setShortBreakDuration] = useState(5 * 60);
   const [timeLeft, setTimeLeft] = useState(focusDuration);
@@ -86,12 +88,12 @@ const Pomodoro: React.FC = () => {
   return (
      <div className="h-full flex flex-col items-center justify-center gap-6 p-4 relative overflow-hidden">
       <div className="absolute top-4 right-4 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1 rounded-full flex items-center gap-2 text-sm font-bold shadow-sm">
-          <Trees size={16} /> <span>{treesGrown} Trees Grown</span>
+          <Trees size={16} /> <span>{treesGrown} {t('treesGrown')}</span>
       </div>
 
       <div className="flex gap-2 p-1 bg-gray-100 dark:bg-slate-700/50 rounded-lg z-10">
-        <button onClick={() => changeMode('focus')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'focus' ? 'bg-white dark:bg-slate-600 text-[var(--accent-color)] dark:text-white shadow-sm' : 'text-gray-500'}`}><Brain size={16} /> Focus</button>
-        <button onClick={() => changeMode('short-break')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'short-break' ? 'bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500'}`}><Coffee size={16} /> Break</button>
+        <button onClick={() => changeMode('focus')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'focus' ? 'bg-white dark:bg-slate-600 text-[var(--accent-color)] dark:text-white shadow-sm' : 'text-gray-500'}`}><Brain size={16} /> {t('focus')}</button>
+        <button onClick={() => changeMode('short-break')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'short-break' ? 'bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500'}`}><Coffee size={16} /> {t('break')}</button>
       </div>
 
       <div className="relative z-0">
@@ -107,7 +109,7 @@ const Pomodoro: React.FC = () => {
                  </div>
              )}
             <div className="text-5xl font-bold text-slate-900 dark:text-white font-mono relative z-10 drop-shadow-sm">{formatTime(timeLeft)}</div>
-            <div className="text-sm text-gray-500 mt-2 font-medium bg-white/50 dark:bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">{isActive ? (mode === 'focus' ? 'Growing...' : 'Relaxing...') : 'Paused'}</div>
+            <div className="text-sm text-gray-500 mt-2 font-medium bg-white/50 dark:bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">{isActive ? (mode === 'focus' ? t('growing') : t('relaxing')) : t('paused')}</div>
         </div>
       </div>
       
@@ -117,14 +119,15 @@ const Pomodoro: React.FC = () => {
       </div>
 
       <div className="w-full max-w-sm pt-4 border-t border-gray-200 dark:border-slate-700/50 grid grid-cols-2 gap-2 z-10">
-        <button onClick={() => applyPreset(25, 5)} className="text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50"><span className="font-semibold text-slate-700 dark:text-slate-200">Standard</span><span className="text-xs block text-gray-500">25m • 5m</span></button>
-        <button onClick={() => applyPreset(50, 10)} className="text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50"><span className="font-semibold text-slate-700 dark:text-slate-200">Deep Work</span><span className="text-xs block text-gray-500">50m • 10m</span></button>
+        <button onClick={() => applyPreset(25, 5)} className="text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50"><span className="font-semibold text-slate-700 dark:text-slate-200">{t('standard')}</span><span className="text-xs block text-gray-500">25m • 5m</span></button>
+        <button onClick={() => applyPreset(50, 10)} className="text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50"><span className="font-semibold text-slate-700 dark:text-slate-200">{t('deepWork')}</span><span className="text-xs block text-gray-500">50m • 10m</span></button>
       </div>
     </div>
   )
 }
 
 const Tracker: React.FC<PomodoroTimerProps> = ({ timeEntries, activeTimer, onStartTimer, onStopTimer }) => {
+  const { t } = useContext(LanguageContext);
   const [description, setDescription] = useState('');
   const [project, setProject] = useState('General');
   const [elapsed, setElapsed] = useState(0);
@@ -161,9 +164,9 @@ const Tracker: React.FC<PomodoroTimerProps> = ({ timeEntries, activeTimer, onSta
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-white/20 dark:border-black/20 flex-shrink-0">
         <form onSubmit={handleStart} className="flex flex-col md:flex-row gap-3 items-center bg-white dark:bg-slate-700 p-3 rounded-lg">
-          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What are you working on?" disabled={!!activeTimer} className="flex-1 w-full bg-transparent border-0 focus:ring-0 text-lg text-slate-900 dark:text-white" />
+          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('workingOnPlaceholder')} disabled={!!activeTimer} className="flex-1 w-full bg-transparent border-0 focus:ring-0 text-lg text-slate-900 dark:text-white" />
           <div className="flex items-center gap-2">
-            <select value={project} onChange={(e) => setProject(e.target.value)} disabled={!!activeTimer} className="bg-transparent border-0 text-sm font-medium text-slate-700 dark:text-slate-200 focus:ring-0"><option>General</option><option>University</option><option>Work</option></select>
+            <select value={project} onChange={(e) => setProject(e.target.value)} disabled={!!activeTimer} className="bg-transparent border-0 text-sm font-medium text-slate-700 dark:text-slate-200 focus:ring-0"><option>{t('general')}</option><option>{t('university')}</option><option>{t('work')}</option></select>
             <div className="font-mono text-xl font-medium text-slate-900 dark:text-white">{formatTime(elapsed)}</div>
             <button type="button" onClick={activeTimer ? onStopTimer : handleStart} disabled={!activeTimer && !description.trim()} className={`${activeTimer ? 'bg-red-500' : 'bg-[var(--accent-color)]'} text-white p-3 rounded-lg disabled:opacity-50`}>
               {activeTimer ? <Square size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
@@ -188,8 +191,8 @@ const Tracker: React.FC<PomodoroTimerProps> = ({ timeEntries, activeTimer, onSta
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 dark:text-gray-500">
             <Clock size={48} className="mb-4 opacity-20" />
-            <p className="font-medium">No time entries yet.</p>
-            <p className="text-sm">Start the timer above to log your work.</p>
+            <p className="font-medium">{t('noTimeEntries')}</p>
+            <p className="text-sm">{t('startTimerHint')}</p>
           </div>
         )}
       </div>
@@ -199,13 +202,14 @@ const Tracker: React.FC<PomodoroTimerProps> = ({ timeEntries, activeTimer, onSta
 
 
 const PomodoroTimer: React.FC<PomodoroTimerProps> = (props) => {
+    const { t } = useContext(LanguageContext);
     const [view, setView] = useState<'pomodoro' | 'tracker'>('pomodoro');
     return (
         <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900">
             <div className="p-2 flex justify-center bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-800">
                 <div className="flex bg-gray-200 dark:bg-slate-700 p-1 rounded-lg">
-                    <button onClick={() => setView('pomodoro')} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'pomodoro' ? 'bg-white dark:bg-slate-600 shadow-sm text-[var(--accent-color)] dark:text-white' : 'text-gray-500'}`}>Pomodoro</button>
-                    <button onClick={() => setView('tracker')} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'tracker' ? 'bg-white dark:bg-slate-600 shadow-sm text-[var(--accent-color)] dark:text-white' : 'text-gray-500'}`}>Tracker</button>
+                    <button onClick={() => setView('pomodoro')} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'pomodoro' ? 'bg-white dark:bg-slate-600 shadow-sm text-[var(--accent-color)] dark:text-white' : 'text-gray-500'}`}>{t('pomodoro')}</button>
+                    <button onClick={() => setView('tracker')} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'tracker' ? 'bg-white dark:bg-slate-600 shadow-sm text-[var(--accent-color)] dark:text-white' : 'text-gray-500'}`}>{t('tracker')}</button>
                 </div>
             </div>
             <div className="flex-1 bg-white dark:bg-slate-900 overflow-hidden">

@@ -1,26 +1,29 @@
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import MobileTopBar from './components/MobileTopBar';
 import MobileAppSwitcher from './components/MobileAppSwitcher';
 import MenuBar from './components/MenuBar';
 import { appIcons } from './constants';
 import Dock from './components/Dock';
 import Window from './components/Window';
-import Dashboard from './components/Dashboard';
-import TaskList from './components/TaskList';
-import PomodoroTimer from './components/PomodoroTimer';
-import StudyRoom from './components/StudyRoom';
-import ChatBot from './components/ChatBot';
-import Settings from './components/Settings';
-import ConfirmationModal from './components/ConfirmationModal';
-import Calculator from './components/Calculator';
-import Notes from './components/Notes';
-import Weather from './components/Weather';
-import Calendar from './components/Calendar';
-import Goals from './components/Goals';
-import Music from './components/Music';
-import Flashcards from './components/Flashcards';
-import Launchpad from './components/Launchpad';
+
+// Lazy load heavy components
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const TaskList = lazy(() => import('./components/TaskList'));
+const PomodoroTimer = lazy(() => import('./components/PomodoroTimer'));
+const StudyRoom = lazy(() => import('./components/StudyRoom'));
+const ChatBot = lazy(() => import('./components/ChatBot'));
+const Settings = lazy(() => import('./components/Settings'));
+const ConfirmationModal = lazy(() => import('./components/ConfirmationModal'));
+const Calculator = lazy(() => import('./components/Calculator'));
+const Notes = lazy(() => import('./components/Notes'));
+const Weather = lazy(() => import('./components/Weather'));
+const Calendar = lazy(() => import('./components/Calendar'));
+const Goals = lazy(() => import('./components/Goals'));
+const Music = lazy(() => import('./components/Music'));
+const Flashcards = lazy(() => import('./components/Flashcards'));
+const Launchpad = lazy(() => import('./components/Launchpad'));
+
 import { AppModule, Project, Task, TimeEntry, ActiveTimer, WindowConfig, Note, Event, Goal, Class, Language, Deck, Flashcard } from './types';
 import { usePersistentState } from './hooks/usePersistentState';
 import { wallpapers, accentColors } from './config/theme';
@@ -28,8 +31,6 @@ import { backupData } from './services/supabaseService';
 import { translations } from './utils/translations';
 import { LanguageContext } from './contexts/LanguageContext';
 import { User } from '@supabase/supabase-js';
-
-import { setApiKey } from './services/geminiService';
 
 const getDefaultWindowSize = (appId: AppModule) => {
   const screenWidth = window.innerWidth;
@@ -121,11 +122,6 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
   const [accentColor, setAccentColor] = usePersistentState<string>('focusflow-theme-accent', accentColors[0].hex);
   const [wallpaper, setWallpaper] = usePersistentState<string>('focusflow-theme-wallpaper', 'deep_space');
   const [language, setLanguage] = usePersistentState<Language>('focusflow-language', 'en');
-  const [geminiApiKey, setGeminiApiKey] = usePersistentState<string>('focusflow-gemini-api-key', '');
-
-  useEffect(() => {
-    setApiKey(geminiApiKey);
-  }, [geminiApiKey]);
 
   const [windows, setWindows] = usePersistentState<WindowConfig[]>('focusflow-windows', []);
   const [activeWindowId, setActiveWindowId] = useState<AppModule | null>(null);
@@ -278,6 +274,40 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
         return w;
     }));
   }, [setWindows]);
+
+  const tileWindows = useCallback(() => {
+    const visibleWindows = windows.filter(w => !w.isMinimized);
+    const count = visibleWindows.length;
+    if (count === 0) return;
+
+    const MENUBAR_HEIGHT = 28;
+    const DOCK_HEIGHT = 64;
+    const availableHeight = window.innerHeight - MENUBAR_HEIGHT - DOCK_HEIGHT;
+    const availableWidth = window.innerWidth;
+
+    const cols = Math.ceil(Math.sqrt(count));
+    const rows = Math.ceil(count / cols);
+    const width = availableWidth / cols;
+    const height = availableHeight / rows;
+
+    setWindows(prev => prev.map(w => {
+      if (w.isMinimized) return w;
+      const index = visibleWindows.findIndex(vw => vw.id === w.id);
+      if (index === -1) return w;
+
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+
+      return {
+        ...w,
+        x: col * width,
+        y: MENUBAR_HEIGHT + (row * height),
+        width: width,
+        height: height,
+        isMaximized: false
+      };
+    }));
+  }, [windows, setWindows]);
 
   const updateWindowState = useCallback((appId: AppModule, updates: Partial<WindowConfig>) => {
     setWindows(prev => prev.map(w => w.id === appId ? { ...w, ...updates } : w));
@@ -520,22 +550,32 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
   };
 
   const renderAppModule = (appId: AppModule) => {
-    switch (appId) {
-      case AppModule.DASHBOARD: return <Dashboard tasks={tasks} projects={projects} setProjects={setProjects} timeEntries={timeEntries} events={events} classes={classes} goals={goals} />;
-      case AppModule.TASKS: return <TaskList tasks={tasks} projects={projects} setTasks={setTasks} setProjects={setProjects} />;
-      case AppModule.POMODORO: return <PomodoroTimer timeEntries={timeEntries} activeTimer={activeTimer} onStartTimer={handleStartTimer} onStopTimer={handleStopTimer} />;
-      case AppModule.SOCIAL: return <StudyRoom />;
-      case AppModule.CHAT: return <ChatBot projects={projects} onAiAction={handleAiAction} />;
-      case AppModule.SETTINGS: return <Settings onExportData={handleExportData} onImportData={handleImportData} onWipeData={() => setIsWipeModalOpen(true)} getAllData={getAllData} onRestoreData={onRestoreData} user={user} isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(p => !p)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} geminiApiKey={geminiApiKey} onSetGeminiApiKey={setGeminiApiKey} />;
-      case AppModule.CALCULATOR: return <Calculator />;
-      case AppModule.NOTES: return <Notes notes={notes} onAddNote={handleAddNote} onUpdateNote={handleUpdateNote} onDeleteNote={handleDeleteNote} />;
-      case AppModule.WEATHER: return <Weather />;
-      case AppModule.CALENDAR: return <Calendar events={events} tasks={tasks} classes={classes} onAddEvent={handleAddEvent} onDeleteEvent={handleDeleteEvent} onAddClass={handleAddClass} onDeleteClass={handleDeleteClass} />;
-      case AppModule.GOALS: return <Goals goals={goals} onAddGoal={handleAddGoal} onToggleGoal={handleToggleGoal} onDeleteGoal={handleDeleteGoal} />;
-      case AppModule.MUSIC: return <Music />;
-      case AppModule.FLASHCARDS: return <Flashcards decks={decks} onAddDeck={handleAddDeck} onDeleteDeck={handleDeleteDeck} onAddCard={handleAddCard} onUpdateCard={handleUpdateCard} onDeleteCard={handleDeleteCard} />;
-      default: return null;
-    }
+    return (
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-full w-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+        </div>
+      }>
+        {(() => {
+          switch (appId) {
+            case AppModule.DASHBOARD: return <Dashboard tasks={tasks} projects={projects} setProjects={setProjects} timeEntries={timeEntries} events={events} classes={classes} goals={goals} />;
+            case AppModule.TASKS: return <TaskList tasks={tasks} projects={projects} setTasks={setTasks} setProjects={setProjects} />;
+            case AppModule.POMODORO: return <PomodoroTimer timeEntries={timeEntries} activeTimer={activeTimer} onStartTimer={handleStartTimer} onStopTimer={handleStopTimer} />;
+            case AppModule.SOCIAL: return <StudyRoom />;
+            case AppModule.CHAT: return <ChatBot projects={projects} onAiAction={handleAiAction} />;
+            case AppModule.SETTINGS: return <Settings onExportData={handleExportData} onImportData={handleImportData} onWipeData={() => setIsWipeModalOpen(true)} getAllData={getAllData} onRestoreData={onRestoreData} user={user} isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(p => !p)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} />;
+            case AppModule.CALCULATOR: return <Calculator />;
+            case AppModule.NOTES: return <Notes notes={notes} onAddNote={handleAddNote} onUpdateNote={handleUpdateNote} onDeleteNote={handleDeleteNote} />;
+            case AppModule.WEATHER: return <Weather />;
+            case AppModule.CALENDAR: return <Calendar events={events} tasks={tasks} classes={classes} onAddEvent={handleAddEvent} onDeleteEvent={handleDeleteEvent} onAddClass={handleAddClass} onDeleteClass={handleDeleteClass} />;
+            case AppModule.GOALS: return <Goals goals={goals} onAddGoal={handleAddGoal} onToggleGoal={handleToggleGoal} onDeleteGoal={handleDeleteGoal} />;
+            case AppModule.MUSIC: return <Music />;
+            case AppModule.FLASHCARDS: return <Flashcards decks={decks} onAddDeck={handleAddDeck} onDeleteDeck={handleDeleteDeck} onAddCard={handleAddCard} onUpdateCard={handleUpdateCard} onDeleteCard={handleDeleteCard} />;
+            default: return null;
+          }
+        })()}
+      </Suspense>
+    );
   };
 
   return (
@@ -593,6 +633,7 @@ const App: React.FC<AppProps> = ({ user, onRestoreData }) => {
               onMinimizeWindow={activeWindowId ? () => minimizeWindow(activeWindowId) : () => {}}
               onToggleMaximize={activeWindowId ? () => toggleMaximize(activeWindowId) : () => {}}
               onCloseAll={handleCloseAll}
+              onTileWindows={tileWindows}
               windows={windows}
               activeWindowId={activeWindowId}
               onFocusWindow={focusWindow}

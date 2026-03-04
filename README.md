@@ -39,13 +39,7 @@ StudyPro OS is a comprehensive, all-in-one productivity operating system designe
    npm install
    ```
 
-3. **Environment Variables**:
-   Create a `.env` file in the root directory and add your Gemini API key:
-   ```env
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
-   ```
-   *Note: Supabase configuration is pre-configured in this version.*
-
+3. **Supabase configuration is pre-configured in this version.**
 4. **Run the development server**:
    ```bash
    npm run dev

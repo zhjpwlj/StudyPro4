@@ -63,7 +63,7 @@ const Notes: React.FC<NotesProps> = ({ notes, onAddNote, onUpdateNote, onDeleteN
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${activeCategory === cat ? 'bg-white dark:bg-slate-800 shadow-sm font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-900'}`}
                 >
                     {cat === 'Journal' ? <Book size={14}/> : (activeCategory === cat ? <FolderOpen size={14} className="text-accent"/> : <Folder size={14} />)}
-                    {cat}
+                    {cat === 'All' ? t('all') : cat === 'Journal' ? t('journal') : cat}
                 </button>
             ))}
         </div>
@@ -71,7 +71,7 @@ const Notes: React.FC<NotesProps> = ({ notes, onAddNote, onUpdateNote, onDeleteN
 
       <aside className="w-64 border-r border-gray-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900">
         <div className="p-3 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center">
-            <h2 className="text-sm font-semibold">{activeCategory === 'All' ? t('allNotes') : activeCategory} ({sortedNotes.length})</h2>
+            <h2 className="text-sm font-semibold">{activeCategory === 'All' ? t('allNotes') : activeCategory === 'Journal' ? t('journal') : activeCategory} ({sortedNotes.length})</h2>
             <button onClick={handleAddNote} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors" title={t('newNote')}>
                 <Plus size={16} />
             </button>
@@ -82,8 +82,8 @@ const Notes: React.FC<NotesProps> = ({ notes, onAddNote, onUpdateNote, onDeleteN
                     key={note.id}
                     onClick={() => setActiveNoteId(note.id)}
                     className={`w-full text-left p-3 border-b border-gray-100 dark:border-slate-800/50 transition-colors ${activeNoteId === note.id ? 'bg-accent/5 border-l-2 border-l-accent' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}>
-                    <div className="font-medium text-sm truncate flex items-center gap-2">{getMoodIcon(note.mood)} {note.title || 'Untitled'}</div>
-                    <div className="text-xs text-gray-400 mt-1 truncate pl-1">{note.content.substring(0, 30) || "No content"}</div>
+                    <div className="font-medium text-sm truncate flex items-center gap-2">{getMoodIcon(note.mood)} {note.title || t('untitled')}</div>
+                    <div className="text-xs text-gray-400 mt-1 truncate pl-1">{note.content.substring(0, 30) || t('noContent')}</div>
                     <span className="block text-[10px] text-gray-400 mt-1 pl-1">{new Date(note.createdAt).toLocaleDateString()}</span>
                 </button>
             ))}
@@ -99,7 +99,7 @@ const Notes: React.FC<NotesProps> = ({ notes, onAddNote, onUpdateNote, onDeleteN
                         value={activeNote.title}
                         onChange={(e) => onUpdateNote(activeNote.id, { title: e.target.value })}
                         className="flex-1 bg-transparent text-xl font-bold focus:outline-none placeholder:text-gray-300"
-                        placeholder="Note Title"
+                        placeholder={t('noteTitlePlaceholder')}
                      />
                      {activeNote.category === 'Journal' && (
                         <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg">
@@ -117,13 +117,13 @@ const Notes: React.FC<NotesProps> = ({ notes, onAddNote, onUpdateNote, onDeleteN
                     value={activeNote.content}
                     onChange={(e) => onUpdateNote(activeNote.id, { content: e.target.value })}
                     className="flex-1 p-6 bg-transparent resize-none focus:outline-none text-base leading-relaxed font-serif text-slate-700 dark:text-slate-300"
-                    placeholder="Start writing..."
+                    placeholder={t('startWritingPlaceholder')}
                 />
             </>
         ) : (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 p-8 text-center bg-gray-50/50 dark:bg-slate-900/50">
                 <FileText size={64} className="mb-4 opacity-10" />
-                <p className="font-medium">{sortedNotes.length > 0 ? t('noNotes') : 'Create your first note!'}</p>
+                <p className="font-medium">{sortedNotes.length > 0 ? t('noNotes') : t('createFirstNote')}</p>
             </div>
         )}
       </main>
