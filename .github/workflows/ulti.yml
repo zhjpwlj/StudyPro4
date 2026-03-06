@@ -7,12 +7,12 @@ on:
         description: Deploy target
         type: choice
         options: [both, github-pages, netlify]
-        default: both
+        default: github-pages
       mode:
         description: Deployment mode
         type: choice
         options: [preview, production]
-        default: preview
+        default: production
       bundle_limit_kb:
         description: Bundle size limit (KB)
         type: number
